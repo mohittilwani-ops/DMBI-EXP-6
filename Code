@@ -1,0 +1,96 @@
+"""
+DMBI Experiment 6
+Bank Customer Churn System
+K-Means Clustering using Python
+
+Dataset: Churn_Modelling.csv
+Selected numerical features: 8
+Target: Exited (used only after clustering for interpretation)
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score
+
+# ------------------------------------------------------------
+# STEP 1: LOAD THE BANK CUSTOMER CHURN SYSTEM DATASET
+# ------------------------------------------------------------
+
+# Google Colab upload support; local execution uses the CSV in this folder.
+try:
+    from google.colab import files
+    uploaded = files.upload()
+    filename = next(iter(uploaded))
+except ImportError:
+    filename = "Churn_Modelling.csv"
+
+df = pd.read_csv(filename)
+
+print("Dataset loaded successfully!")
+print("Dataset Shape:", df.shape)
+print("\nColumn Names:")
+print(df.columns.tolist())
+print("\nFirst 5 Records:")
+print(df.head())
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+# ------------------------------------------------------------
+# STEP 2: SELECT NUMERICAL FEATURES FOR CLUSTERING
+# ------------------------------------------------------------
+
+features = [
+    "CreditScore",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary"
+]
+
+missing_features = [column for column in features if column not in df.columns]
+if missing_features:
+    raise ValueError(f"Required columns not found in dataset: {missing_features}")
+
+X = df[features].copy()
+
+# Replace missing numerical values with the median, if any.
+X = X.fillna(X.median())
+
+print("\nSelected Features:")
+print(features)
+print("\nShape of selected data:", X.shape)
+print("\nFirst 5 rows of selected features:")
+print(X.head())
+
+# ------------------------------------------------------------
+# STEP 3: STANDARDIZE THE SELECTED FEATURES
+# ------------------------------------------------------------
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_scaled_df = pd.DataFrame(X_scaled, columns=features)
+
+print("\nStandardization completed successfully!")
+print("Standardized data shape:", X_scaled_df.shape)
+print(X_scaled_df.head())
+
+# ------------------------------------------------------------
+# STEP 4: PLOT THE ELBOW METHOD GRAPH
+# ------------------------------------------------------------
+
+from sklearn.cluster import KMeans
+
+inertia = []
+k_values = range(2, 11)
+
+for k in k_values:
+    model = KMeans(
